@@ -1,12 +1,2 @@
-memory = 0
-happiness = 0
-sad = 0
-
-def alive():
-	while alive:
-		memory += 1
-		happiness += 1
-		sad += 1
-
-	if memory == 0 and happiness == 0 and sad == 0:
-		return null
+把codecademy的代码敲完了
+现在整理在git上面，希望以后能有个参考
