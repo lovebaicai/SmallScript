@@ -103,7 +103,7 @@ class BDTB:
         except IOError, e:
             print 'faild' + e.massage
         finally:
-            print 'wirte succellful'
+            print 'wirte successful'
 
 print u'Please input 帖子代号'
 baseUrl = 'http://tieba.baidu.com/p/' + str(raw_input(u'http://tieba.baidu.com/p/'))
