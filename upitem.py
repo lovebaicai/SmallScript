@@ -88,13 +88,13 @@ for tag in sound_tag:
                 links_title = code.findAll(name='a', attrs={'class': 'discoverAlbum_title'})
                 for link in links_title:
                     urltab2 =  link['href']
-                    introcode = Soup(urltab2)
-                    intros = introcode.findAll('div', attrs={'class': 'mid_intro'})
-                    for intro in intros:
-                        intro = intro.article.string
-                    playcounts = introcode.findAll('div', attrs={'class': 'detailContent_playcountDetail'})
-                    for count in playcounts:
-                        playcount  = count.span.string
+#                    introcode = Soup(urltab2)
+#                    intros = introcode.findAll('div', attrs={'class': 'mid_intro'})
+#                    for intro in intros:
+#                        intro = intro.article.string
+#                    playcounts = introcode.findAll('div', attrs={'class': 'detailContent_playcountDetail'})
+#                    for count in playcounts:
+#                        playcount  = count.span.string
                     encoding_support = ContentEncodingProcessor
                     opener = urllib2.build_opener(encoding_support, urllib2.HTTPHandler)
                     # 直接用opener打开网页，如果服务器支持gzip/defalte则自动解压缩
@@ -107,13 +107,23 @@ for tag in sound_tag:
                     updatetime = tree.xpath("//div[@class='detailContent_category']/span")[0].text
                     username = tree.xpath("//div[@class='username']")[0].text
                     username = username.split()[0]
+                    try:
+                        playcount = tree.xpath("//div[@class='detailContent_playcountDetail']/span")[0].text
+                    except Exception as b:
+                        logging.exception(b)
+                        playcount = 0
+                    try:
+                        intro = tree.xpath("//div[@class='detailContent_intro']/div[@class='mid_intro']/article")[0].text
+                    except Exception as f:
+                        logging.exception(f)
+                        intro = None
                     sheet.write(k, 0, title)
                     sheet.write(k, 1, music_type)
                     sheet.write(k, 2, tagString)
                     sheet.write(k, 3, updatetime)
                     sheet.write(k, 4, playcount)
-                    sheet.write(k, 5, intro)
                     sheet.write(k, 6, username)
+                    sheet.write(k, 5, intro)
                     k += 1
                 print 'write %s%d ok' % (tag.string, i)
             xmlybook.save('uptabxmly.xls')
