@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-*- coding:utf-8-*-
+
 import logging
 import MySQLdb as mdb
 from lxml import etree
@@ -216,6 +217,7 @@ def Spider(var):
         print '%s%s 保存完成'  % (var, tag.string)
 
 if __name__ =='__main__' :
+    Spider(var='')
     Spider(var='classic')
     Spider(var='recent')
     cur.close()
