@@ -2,7 +2,7 @@
 #-*-coding:utf-8-*-
 
 import os
-import random
+#import random
 import time
 import requests
 import pymongo
@@ -16,8 +16,8 @@ from multiprocessing.dummy import Pool as ThreadPool
 import sys
 reload(sys)
 
-q = Queue.Queue()
-thread_num = 20
+#q = Queue.Queue()
+#thread_num = 20
 
 conn = pymongo.MongoClient(host='127.0.0.1', port=27017)
 db = conn.cmfu
@@ -33,7 +33,7 @@ headers = {'Accept-Language': 'zh-CN,zh;q=0.8,ja;q=0.6,en;q=0.4,zh-TW;q=0.2',
 def Soup(url):
     try:
         r = requests.get(url, headers=headers)
-        soup = BeautifulSoup(r.content, 'lxml')
+        soup = BeautifulSoup(r.content)
         return soup
    # request = urllib2.Request(url, headers=headers)
    # try:
@@ -65,19 +65,11 @@ def BookReader(bookurl):
 
 #获取bookinfo,插入MongoDb
 def Bookinfo(bookurl):
-#    print bookurl
     #exist = db.cmfu.find({'bookurl':bookurl})
-    iplist = []
-    with open('ip.txt', 'r') as f:
-        ips = f.readlines()
-        for i in ips:
-            iplist.append(i.strip())
-    ip = random.choice(iplist)
-    proxies = {"http": ip}
     try:
         #resopnse = urllib2.Request(bookurl, headers=headers)
         #html = urllib2.urlopen(resopnse, timeout=20).read()
-        response = requests.get(bookurl, proxies=proxies, headers=headers)
+        response = requests.get(bookurl, headers=headers)
         html = response.content
         tree = etree.HTML(html)
         starttime = BookReader(bookurl)
@@ -118,10 +110,10 @@ def Bookinfo(bookurl):
         info_cmfu['starttime'] = starttime
 
         collection.insert(info_cmfu)
-        print '%s write ok!!!' % bookname
     except Exception as e:
         print e
         pass
+    print '%s write ok!!!' % bookname
     print 'Sleep time......'
     time.sleep(5)
 
