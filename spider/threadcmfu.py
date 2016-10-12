@@ -41,7 +41,7 @@ def Soup(url):
    #     pagecode = response.read()
    #     soup = BeautifulSoup(pagecode, 'lxml')
    #     return soup
-    except urllib2.URLError, e:
+    except Exception as e:
         print e
 
 #获取starttime
