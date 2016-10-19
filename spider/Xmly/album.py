@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #-*- coding:utf-8-*-
-
 import datetime
 import logging
 import MySQLdb as mdb
@@ -69,15 +68,14 @@ def deflate(data):   # zlib only provides the zlib compress format, not the def
     except zlib.error:
         return zlib.decompress(data)
 
-#con = mdb.connect('localhost', 'root', 'ubuntu', 'SpiderData', charset='utf8')
-con = mdb.connect('localhost', 'root', 'ubuntu', 'sound', charset='utf8')
+con = mdb.connect('localhost', 'root', 'ubuntu', 'SpiderData', charset='utf8')
+#con = mdb.connect('localhost', 'root', 'ubuntu', 'sound', charset='utf8')
 cur = con.cursor()
 cur.execute("SET NAMES utf8")
 
 try:
-    #cur.execute("DROP TABLE IF EXISTS newsound")
-    cur.execute("create table albumsound(id int PRIMARY KEY AUTO_INCREMENT, albumtitle varchar(255), music_type VARCHAR (255), "
-                "author VARCHAR(255),playcount VARCHAR (255), tag VARCHAR(255), starttime varchar (255), endtime varchar(255), albumurl varchar(255))")
+    cur.execute("DROP TABLE IF EXISTS newalbum")
+    cur.execute("create table newalbum(id int PRIMARY KEY AUTO_INCREMENT, albumtitle varchar(255), music_type VARCHAR (255),author VARCHAR(255),playcount VARCHAR (255), tag VARCHAR(255), starttime varchar (255), endtime varchar(255), albumurl varchar(255))")
 except Exception as e:
     logging.exception(e)
 
@@ -85,40 +83,40 @@ url = 'http://www.ximalaya.com/dq/all/'
 pagesource = Soup(url)
 sound_tag = pagesource.findAll('a' ,attrs={'class': 'tagBtn'})
 host = 'http://www.ximalaya.com'
-#taglist = ['悬疑','言情', '幻想', '历史', '都市', '文学', '武侠', '官场商战', '经管', '社科', 'QQ阅读',
-#           '读客图书', '果麦文化', '中信出版', '博集天卷', '磨铁阅读', '蓝狮子', '速播专区', '推理世界', '正能量有声书']
+taglist = ['悬疑','言情', '幻想', '历史', '都市', '文学', '武侠', '官场商战', '经管', '社科', 'QQ阅读',
+           '读客图书', '果麦文化', '中信出版', '博集天卷', '磨铁阅读', '蓝狮子', '速播专区', '推理世界', '正能量有声书']
 
 #获取声音链接
 def Spider(var=''):
     for tag in sound_tag:
-        urltab = ('%s%s%s') % (host, tag['href'], var)    #urltab是大分类链接
+        if tag.string in taglist:
+            urltab = ('%s%s%s') % (host, tag['href'], var)    #urltab是大分类链接
 #            print urltab
-        numbercode = Soup(urltab)
-        pagenumber = numbercode.findAll(name='a', attrs={'class': 'pagingBar_page'})
-        numberlist = [] #获取分类下页面最大数
-        for numbers in pagenumber:
-            numberlist.append(numbers.string)
-        try:
-            maxpagenumber = int(numberlist[-2]) + 1
-        except Exception as a:
-            maxpagenumber = 1
+            numbercode = Soup(urltab)
+            pagenumber = numbercode.findAll(name='a', attrs={'class': 'pagingBar_page'})
+            numberlist = [] #获取分类下页面最大数
+            for numbers in pagenumber:
+                numberlist.append(numbers.string)
+            try:
+                maxpagenumber = int(numberlist[-2]) + 1
+            except Exception as a:
+                maxpagenumber = 1
 #            print maxpagenumber
 #            maxpagenumber = 2
-        for i in range(1, maxpagenumber):
-            urltab2 = (urltab + '%s') % i
-            print '开始抓取%s%s,第%s页数据' % (var, tag.string, i)
-            if Link_exists(urltab2) == True:
-                code  = Soup(urltab2)
-                links_title = code.findAll(name='a', attrs={'class': 'discoverAlbum_title'})
-            for link in links_title:
-                args = (link['href'],)
-                sql = 'SELECT albumurl FROM albumsound WHERE albumurl = (%s)'
-                albumnumber = cur.execute(sql, args)
-                if albumnumber == 0:
-                    encoding_support = ContentEncodingProcessor
-                    opener = urllib2.build_opener(encoding_support, urllib2.HTTPHandler)
-                    try:
-                        html = opener.open(link['href'],timeout=20).read()
+            for i in range(1, maxpagenumber):
+                urltab2 = (urltab + '%s') % i
+                print '开始抓取%s,第%s页数据' % (tag.string, i)
+                if Link_exists(urltab2) == True:
+                    code  = Soup(urltab2)
+                    links_title = code.findAll(name='a', attrs={'class': 'discoverAlbum_title'})
+                for link in links_title:
+                    args = (link['href'],)
+                    sql = 'SELECT albumurl FROM albumsound WHERE albumurl = (%s)'
+                    albumnumber = cur.execute(sql, args)
+                    if albumnumber == 0:
+                        encoding_support = ContentEncodingProcessor
+                        opener = urllib2.build_opener(encoding_support, urllib2.HTTPHandler)
+                        html = opener.open(link['href']).read()
                         pagetree = etree.HTML(html)
                         pagenu = pagetree.xpath("//@data-page")        #获取专辑下节目最大页数
                         try:
@@ -167,35 +165,37 @@ def Spider(var=''):
                                 starttime = starttime1
             #            print albumtitle, music_type, username, playcount, tagString, starttime, updatetime, aurl
                         try:
+                           #新加专辑
+                           cur.execute(
+                               "insert into newalbum(albumtitle, music_type, author, playcount, tag, starttime, endtime, albumurl)"
+                               "values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+                                %(albumtitle, music_type, username, playcount, tagString, starttime, updatetime, aurl))
+                           #新增加专辑insert总专辑
                            cur.execute(
                                "insert into albumsound(albumtitle, music_type, author, playcount, tag, starttime, endtime, albumurl)"
                                "values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
-                                % (albumtitle, music_type, username, playcount, tagString, starttime, updatetime, aurl))
-
-                        #   cur.execute(
-                        #       "insert into albumsound(albumtitle, music_type, author, playcount, tag, starttime, endtime, albumurl)"
-                        #       "values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
-                        #       % (albumtitle, music_type, username, playcount, tagString, starttime, updatetime, aurl))
+                               %(albumtitle, music_type, username, playcount, tagString, starttime, updatetime, aurl))
             #               con.commit()
                         except Exception as f:
                             logging.exception(f)
                         con.commit()
                         print '爬取%s数据完成' % (link.string)
-                    except:
-                        pass
-                else:
-                    print '%s exists' % link.string
-            print '%s,第%s页保存完成' % (tag.string, i)
-        print '%s%s 保存完成' % (var, tag.string)
+                    else:
+                        print '%s exists' % link.string
+                print '%s,第%s页保存完成' % (tag.string, i)
+            print '%s 保存完成' % tag.string
+        else:
+            break
     print 'ok!!!!!!!!!!'
 
 def Csv():
     import csv
-    csvFile = open('newsound.csv','w+')
+    csvFile = open('newalbum.csv','w+')
     writer = csv.writer(csvFile)
     writer.writerow(('id', 'albumtitle', 'music_type', 'author', 'playcount', 'tag', 'starttime', 'endtime', 'albumurl'))
-    sql1 = 'select * from newsound'
-    excel = cur.execute(sql1)
+    mouthtime = datetime.date(datetime.date.today().year,datetime.date.today().month,1).strftime('%Y-%m-%d').replace('-', '', 2)
+    sql1 = 'select * from newalbum where starttime >= (%s)'
+    excel = cur.execute(sql1, mounthtime)
     datas = cur.fetchall()
     for data in datas:
         writer.writerow((data[0], data[1].encode('utf-8', 'ignore'),data[2].encode('utf-8', 'ignore'), data[3].encode('utf-8', 'ignore'),data[4].encode('utf-8', 'ignore'),
@@ -212,19 +212,19 @@ def Email():
     from email.mime.text import MIMEText
     from email.mime.application import MIMEApplication
 
-    user = 'chenfuqiang@qingting.fm'
-    pwd = 'Ko1990'
-    to = ['chenfuqiang@qingting.fm', 'liyuanchao@qingting.fm']
+    user = 'test@test.com'
+    pwd = 'test'
+    to = ['test@test.com', 'test@test.com']
     msg = MIMEMultipart()
     msg['Subject']  = '新增专辑'
     msg['From'] = user
-    msg['To'] = ','.join(to)  # 务必加上,smtplib的bug.
+    msg['To']=','.join(to) #务必加上,smtplib的bug.
 
     part = MIMEText(str(datetime.date.today()) + '新增专辑')
     msg.attach(part)
 
-    part1 = MIMEApplication(open('newsound.csv','rb').read())
-    part1.add_header('Content-Disposition', 'attachment', filename="newsound.csv")
+    part1 = MIMEApplication(open('newalbum.csv','rb').read())
+    part1.add_header('Content-Disposition', 'attachment', filename="newalbum.csv")
     msg.attach(part1)
 
     server = smtplib.SMTP('smtp.exmail.qq.com')
@@ -237,5 +237,5 @@ if __name__ =='__main__' :
     Spider()
     Spider(var='classic')
     Spider(var='recent')
- #   Csv()
- #   Email()
+    Csv()
+    Email()
