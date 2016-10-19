@@ -63,7 +63,7 @@ def Spider(url):
         tree = etree.HTML(r.content)
         bookurls = tree.xpath("//a[@class='fs14']/@href")
         for bookurl in bookurls:
-            return Bookinfo(bookurl)
+            Bookinfo(bookurl)
             #print bookurl
     except Exception as e:
         print e
