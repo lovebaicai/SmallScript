@@ -2,21 +2,25 @@
 #-*-coding:utf-8-*-
 
 import os
-import random
-import time
-import requests
 import pymongo
 import urllib2
 from lxml import etree
 import threading
+import Queue
+import MySQLdb as mdb
 from bs4 import BeautifulSoup
 from multiprocessing.dummy import Pool as ThreadPool
 import sys
+import time
 reload(sys)
 
-conn = pymongo.MongoClient(host='127.0.0.1', port=27017)
+
+q = Queue.Queue()
+thread_num = 20
+
+conn   = pymongo.MongoClient(host='127.0.0.1',port=27017)
 db = conn.cmfu
-collection = db.book
+collection = db.cmfu
 
 headers = {'Accept-Language': 'zh-CN,zh;q=0.8,ja;q=0.6,en;q=0.4,zh-TW;q=0.2',
            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36',
@@ -24,51 +28,43 @@ headers = {'Accept-Language': 'zh-CN,zh;q=0.8,ja;q=0.6,en;q=0.4,zh-TW;q=0.2',
            'Host': 'a.qidian.com',
            'Connection': 'Keep-Alive'}
 
-#解析url
 def Soup(url):
+    request = urllib2.Request(url, headers=headers)
     try:
-       # r = requests.get(url, headers=headers)
-       # soup = BeautifulSoup(r.content, 'lxml')
-       request = urllib2.Request(url)
-       response = urllib2.urlopen(request, timeout=20, headers=headers)
-       pagecode = response.read()
-       soup = BeautifulSoup(pagecode, 'lxml')
-       return soup
+        response = urllib2.urlopen(request, timeout=20)
+        pagecode = response.read()
+        soup = BeautifulSoup(pagecode, 'lxml')
+        return soup
     except urllib2.URLError, e:
         print e
-        pass
 
 #获取starttime
 def BookReader(bookurl):
-    code = Soup(bookurl)
-    books1 = code.findAll(name='a', attrs={'stat-type': 'read'})
-    global readurl
-    for readurl in books1:
-        readurl = readurl['href']
-        try:
-            request = urllib2.Request(bookurl)
-            response = urllib2.urlopen(request, timeout=20, headers=headers).read()
-            #response = requests.get(readurl, headers=headers)
-            #html = response.content
-            tree = etree.HTML(response)
-            starttime = tree.xpath("//a[@itemprop='url']/@title")[0].split(' ')[2]
-        except Exception as e:
-            print e
-            pass
-        return starttime
+    bookurl = 'http://www.qdmm.com/MMWeb/1004049656.aspx'
+    # def BookReader(bookurl):
+    try:
+        html = urllib2.urlopen(bookurl).read()
+        tree = etree.HTML(html)
+        readurl = tree.xpath("//a[@itemprop='url']/@href")[0]
+        readurl = 'http://www.qdmm.com' + readurl
+        html = urllib2.urlopen(readurl, timeout=20, headers=headers).read()
+        tree = etree.HTML(html)
+        starttime = tree.xpath("//a[@itemprop='url']/@title")[0].split(' ')[2]
+    except Exception as e:
+        print e
+        pass
+    return starttime
 
 #获取bookinfo,插入MongoDb
 def Bookinfo(bookurl):
-    exist = db.book.count({'bookurl': bookurl})
+    exist = db.book.count({'bookurl':bookurl})
     if exist < 1:
         try:
-            #print bookurl
-            request = urllib2.Request(bookurl)
-            response = urllib2.urlopen(request, timeout=20, headers=headers).read()
-            #response = requests.get(bookurl, headers=headers)
-            #html = response.content
-            tree = etree.HTML(response)
+            resopnse = urllib2.Request(bookurl, headers=headers)
+            html = urllib2.urlopen(resopnse, timeout=20).read()
+            tree = etree.HTML(html)
             starttime = BookReader(bookurl)
+#            trialStatus = tree.xpath("//span[@itemprop='trialStatus']")[0].text
             totalClick = tree.xpath("//span[@itemprop='totalClick']")[0].text
             monthClick = tree.xpath("//span[@itemprop='monthlyClick']")[0].text
             weeklyClick = tree.xpath("//span[@itemprop='weeklyClick']")[0].text
@@ -77,8 +73,8 @@ def Bookinfo(bookurl):
             weeklyRecommend = tree.xpath("//span[@itemprop='weeklyRecommend']")[0].text
             wordCount = tree.xpath("//span[@itemprop='wordCount']")[0].text
             author = tree.xpath("//span[@itemprop='name']")[0].text.strip()
-            bookname = tree.xpath("//div[@class='title']/h1[@itemprop='name']")[0].text.strip()
-            genre = tree.xpath("//span[@itemprop='genre']")[0].text
+            bookname = tree.xpath("//strong[@itemprop='name']")[0].text.strip()
+            genre = tree.xpath("//span[@itemprop='genre']")[0].text.strip()
             updateStatus = tree.xpath("//span[@itemprop='updataStatus']")[0].text
             dateModified = tree.xpath("//span[@itemprop='dateModified']")[0].text
             description = tree.xpath("//span[@itemprop='description']")[0].text.strip()
@@ -104,35 +100,34 @@ def Bookinfo(bookurl):
             info_cmfu['starttime'] = starttime
 
             collection.insert(info_cmfu)
-            print 'Sleep time....'
-            time.sleep(5)
-            print '%s write ok!!!' % bookname
         except Exception as e:
             print e
             pass
+        print '%s write ok!!!' % bookname
+        time.sleep(5)
+        print 'Sleep time...'
     else:
-        print '%s exists' % bookurl
-
+        print '%s exist...' % bookurl
 
 #获取bookurl
 def Spider(url):
     try:
-        code = Soup(url)
-        books = code.findAll(name='a', attrs={'class': 'name'})
-        for book in books:
-            if book['href'] != 'javascript:':
-                bookurl = book['href']
-                Bookinfo(bookurl)
+        html = urllib2.urlopen(url).read()
+        tree = etree.HTML(html)
+        bookname = tree.xpath("//span[@class='swbt']/a/@href")
+        for bookurl in bookname:
+            #print bookurl
+            Bookinfo(bookurl)
     except Exception as e:
         print e
         pass
 
 if __name__ == '__main__':
-    pool = ThreadPool(5)
+    pool = ThreadPool(3)
     page = []
-    for i in range(1, 8874):
-        url = ('http://a.qidian.com/?size=-1&sign=-1&tag=-1&chanId=-1&subCateId=-1&orderId=2&page=' +
-              str(i) + '&month=-1&style=2&action=-1&vip=-1')
+    for i in range(1, 1967):
+        url = ('http://all.qdmm.com/MMWeb/BookStore.aspx?ChannelId=41&SubCategoryId=-1&Tag=all&Size=-1&Action=-1&OrderId=13&P=all&PageIndex=' +
+              str(i) + '&update=-1&Vip=-1')
         page.append(url)
     results = pool.map(Spider, page)
     pool.close()
