@@ -53,7 +53,7 @@ def Booktime(readurl):
 
 #获取bookinfo,插入MongoDB
 def Bookinfo(bookurl):
-    exist = db.book.count({'bookurl':bookurl})
+    exist = db.newbook.count({'bookurl':bookurl})
     if exist < 1:
         r = requests.get(bookurl, headers=headers, timeout=20)
         tree = etree.HTML(r.content)
