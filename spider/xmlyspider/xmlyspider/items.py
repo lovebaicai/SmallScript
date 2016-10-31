@@ -10,7 +10,6 @@ import scrapy
 
 class XmlyspiderItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
     Albumtitle = scrapy.Field()
 #    AlbumId = scrapy.Field()
     Albumscore = scrapy.Field()
@@ -19,8 +18,8 @@ class XmlyspiderItem(scrapy.Item):
     Title = scrapy.Field()
     Nickname = scrapy.Field()
     SinglePlayCount = scrapy.Field()
-    CreateTime = scrapy.Field()
+    CreatedTime = scrapy.Field()
     Duration = scrapy.Field()
-    LikeCounts = scrapy.Field()
+    LikeCount = scrapy.Field()
     CommentsCount = scrapy.Field()
-    category = scrapy.Field()
+    category_title = scrapy.Field()
