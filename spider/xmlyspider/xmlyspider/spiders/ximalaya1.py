@@ -6,7 +6,6 @@ import scrapy
 from datetime import datetime
 from ..items import XmlyspiderItem
 
-
 class XimalayaSpider(scrapy.Spider):
     name = 'xmly'
     #allowed_domains = ['http://mobile.ximalaya.com/']
