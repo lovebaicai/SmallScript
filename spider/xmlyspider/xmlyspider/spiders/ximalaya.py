@@ -47,3 +47,8 @@ class XimalayaSpider(scrapy.Spider):
             singleurl = 'http://www.ximalaya.com/tracks/%s.json' % trackId
             item['category_title'] = json.loads(requests.get(singleurl).content)['category_title']
             yield item
+xcept:
+                pass
+
+
+
