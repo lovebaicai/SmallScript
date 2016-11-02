@@ -33,7 +33,7 @@ class XimalayaSpider(scrapy.Spider):
     def parse_album(self, response):
         item = response.meta['item']
         code = json.loads(response.body)['data']['list']
-        print code
+        #print code
         for info1 in code:
             item['Title'] = info1['title']
             item['Nickname'] = info1['nickname']
