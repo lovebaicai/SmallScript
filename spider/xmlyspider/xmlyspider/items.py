@@ -23,3 +23,4 @@ class XmlyspiderItem(scrapy.Item):
     LikeCount = scrapy.Field()
     CommentsCount = scrapy.Field()
     category_title = scrapy.Field()
+    trackId = scrapy.Field()
