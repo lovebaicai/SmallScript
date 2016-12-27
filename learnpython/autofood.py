@@ -38,4 +38,6 @@ def food():
         return f
         with open('/var/log/food.log', 'a+') as a:
             a.write(f)
-food()
+
+if __name__ == '__main__':
+    food()
