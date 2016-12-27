@@ -23,7 +23,7 @@ time = datetime.now()
 
 def food():
     try:
-        msg = MIMEText('mail', 'plain', 'utf-8')
+        msg = MIMEText('foodname', 'plain', 'utf-8')
         msg['From'] = _format_addr('mailname<%s>' % from_addr)
         msg['To'] = _format_addr('tomailname <%s>' % to_addr)
         msg['Subject'] = Header('title', 'utf-8').encode()
