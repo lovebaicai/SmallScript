@@ -11,25 +11,26 @@ from email.mime.application import MIMEApplication
 def Email():
     time1 = datetime.datetime.now().strftime('%Y%m%d')
     tabname = 'sound_' + time1
-    user = 'test@test.com'
-    pwd = 'test'
-    #to = ['test@test.fm']
+    user = 'foruser'
+    pwd = 'pwd'
+    to = ['touser']
     msg = MIMEMultipart()
-    msg['Subject'] = (str(datetime.date.today()) + 'test')
+    msg['Subject'] = '付费节目每日数据统计'
     msg['From'] = user
     msg['To'] = ','.join(to) #务必加上,smtplib的bug.
 
-    part = MIMEText(str(datetime.date.today()) + 'test')
+    part = MIMEText(str(datetime.date.today()) + '付费节目数据统计')
     msg.attach(part)
 
     part1 = MIMEApplication(open((str(tabname) + '.xls'), 'rb').read())
-    part1.add_header('Content-Disposition', 'attachment', filename=(str(tabname) + '.xls'))
+    part1.add_header('Content-Disposition', 'attachment', filename="paid.xls")
     msg.attach(part1)
 
-    server = smtplib.SMTP('smtp.test.com')
+    server = smtplib.SMTP('smtp.exmail.qq.com')
     server.login(user, pwd)
     server.sendmail(user, to, msg.as_string())
     server.close()
     print 'Email send ok !!!'
 
-Email()
+if __name__ == '__main__':
+    Email()
