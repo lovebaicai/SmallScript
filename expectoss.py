@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding:utf-8 -*-
 
 import sys
 import paramiko
@@ -13,7 +14,7 @@ def sshclient(ip, username, password, cmd):
 
     stdin, stdout, stderr = myclient.exec_command(cmd)
 
-    stdin.write("y\n")
+#    stdin.write("y\n") #交互Y,确认
 
     print stdout.readlines()
 
