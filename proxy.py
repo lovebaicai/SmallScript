@@ -59,7 +59,6 @@ def validateIp(proxy):
             continue
     f.close()
 
-
 if __name__ == '__main__':
     proxy = getProxyIp()
     validateIp(proxy)
