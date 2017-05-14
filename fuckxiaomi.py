@@ -39,7 +39,7 @@ while c >0:
     print(('Remaining time: {}s').format(c))
     time.sleep(1)
 
-print('start Snapped up m6, fuck xiaomi')
+print('start rush to buym6, fuck xiaomi')
 
 while 1:
     try:
