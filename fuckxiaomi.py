@@ -30,7 +30,7 @@ submit.click()
 time.sleep(0.5)
 cookies = driver.get_cookies()
 
-# swich page of buy mi6
+# switch page of buy mi6
 
 print('start rush to buym6, fuck xiaomi')
 
