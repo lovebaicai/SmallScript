@@ -32,7 +32,7 @@ cookies = driver.get_cookies()
 
 # swich page of buy mi6
 
-print('start Snapped up m6, fuck xiaomi')
+print('start rush to buym6, fuck xiaomi')
 
 p = 0
 while 1:
