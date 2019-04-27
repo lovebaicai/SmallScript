@@ -1,4 +1,6 @@
 #!/bin/bash
+# 去除迅雷mac版本无用的功能
+
 chmod a-x /Applications/Thunder.app/Contents/Bundles/xlplayer.xlplugin # 迅雷播放器
 chmod a-x /Applications/Thunder.app/Contents/PlugIns/bbassistant.xlplugin # 宽带助手
 chmod a-x /Applications/Thunder.app/Contents/PlugIns/browserhelper.xlplugin # 浏览器支持
@@ -14,3 +16,6 @@ chmod a-x /Applications/Thunder.app/Contents/PlugIns/advertising.xlplugin # 左�
 chmod a-x /Applications/Thunder.app/Contents/PlugIns/softmanager.xlplugin # 软件管理
 chmod a-x /Applications/Thunder.app/Contents/PlugIns/iOSThunder.xlplugin  # 手机迅雷
 chmod a-x /Applications/Thunder.app/Contents/PlugIns/activitycenter.xlplugin  # 活动中心
+chmod a-x /Applications/Thunder.app/Contents/PlugIns/feedback.xlplugin  # 反馈
+chmod a-x /Applications/Thunder.app/Contents/PlugIns/thunderword.xlplugin  # 未知插件，去除不影响
+chmod a-x /Applications/Thunder.app/Contents/PlugIns/liveupdate.xlplugin  # 在线更新
